@@ -1,0 +1,92 @@
+#!/bin/bash
+#
+# Update data inside the translation table
+
+bin_dir="$(dirname "$0")"
+. $bin_dir/common_psql
+
+ATTS=""
+VALS=""
+EBMS=0
+
+HELPTEXT="$0 [-e][-m <ebms_message_id> -r <ebms_ref_to_message_id> -c <ebms_conversation_id>][-i <ws_message_id> -w <ws_relates_to>]"
+while getopts ":t:m:r:c:i:w:e" options
+do
+        case $options in
+	m )    EBMSMSGID=$OPTARG ;;
+	r )    EBMSRTMSGID=$OPTARG ;;
+	c )    EBMSCONVID=$OPTARG ;;
+	i )    WSMSGID=$OPTARG ;;
+	w )    WSRELTO=$OPTARG ;;
+        e )    EBMS=1 ;; 
+        * )    echo "Onbekende optie";
+	       echo ${HELPTEXT};
+	       exit ;;
+        esac
+done
+
+if [ "${EBMS}" == "1" ]
+then
+    if [ "${EBMSMSGID}" == "" ]
+    then
+	echo $HELPTEXT
+	exit 1
+    fi
+
+    WHERE="ebms_message_id = '$EBMSMSGID'"
+
+    if [ "${WSMSGID}" != "" ]
+    then
+	SET="ws_message_id = '$WSMSGID'"
+    fi
+    if [ "${WSRELTO}" != "" ]
+    then
+	if [ "${SET}" == "" ]
+	then
+	    SET="ws_relates_to = '$WSRELTO'"
+	else
+	    SET="${SET}, ws_relates_to = '$WSRELTO'"
+	fi
+    fi
+else
+    if [ "${WSMSGID}" = "" ]
+    then
+        echo $HELPTEXT
+        exit 1
+    fi
+
+    WHERE="ws_message_id = '$WSMSGID'"
+
+    if [ "${EBMSMSGID}" != "" ]
+    then
+	SET="ebms_message_id = '$EBMSMSGID'"
+    fi
+
+    if [ "${EBMSRTMSGID}" != "" ]
+    then
+	if [ "${SET}" == "" ]
+	then
+	    SET="ebms_ref_to_message_id = '$EBMSRTMSGID'"
+	else
+	    SET="${SET}, ebms_ref_to_message_id = '$EBMSRTMSGID'"
+	fi
+    fi
+    if [ "${EBMSCONVID}" != "" ]
+    then
+	if [ "${SET}" == "" ]
+	then
+	    SET="ebms_conversation_id = '$EBMSCONVID'"
+	else
+	    SET="${SET}, ebms_conversation_id = '$EBMSCONVID'"
+	fi
+    fi
+fi
+
+if [ "${SET}" != "" ]
+then
+    $PSQL -c "UPDATE translation SET $SET WHERE id=(SELECT MAX(id) FROM translation WHERE $WHERE);" -t -A > /dev/null 2>&1
+else
+    echo "No parameters to set passed"
+    exit 1
+fi
+

@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Find or generate a conversation id for the ebms conversation
+bin_dir="$(dirname "$0")"
+. ${bin_dir}/config
+RESULT=""
+
+HELPTEXT="$0 -r <ws_relates_to> -c <conversation_id>"
+while getopts ":r:c:" options
+do
+        case $options in
+        r )     WSRELTO=${OPTARG} ;;
+        c )     CONVID=${OPTARG} ;;
+        * )     echo "Unknown option"; echo ${HELPTEXT}; exit ;;
+        esac
+done
+
+# Search the database on basis of ws_relates_to
+if [ "${WSRELTO}" != "" ]
+then
+    RESULT=`$bin_dir/$database/read_translation_ebms ebms_conversation_id ws_message_id $WSRELTO`
+    RC=$?
+    if [ ${RC} -ne 0 ]
+    then
+	echo "Call to ${bin_dir}/${database}/read_translation_ebms failed: (${RC}): $RESULT"
+	exit 1
+    else
+	CONVID=${RESULT}
+    fi
+fi
+
+# If no conversation id was given nor found in the database one will be generated
+if [ "${CONVID}" = "" ]
+then
+    TSTAMP=`date +%s%N`
+    NAME=`printf '%X' ${TSTAMP}`
+    CONVID="TRANS_${NAME}"
+fi
+
+echo ebms_conversation_id="${CONVID};"

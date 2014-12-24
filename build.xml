@@ -1,0 +1,38 @@
+<project>
+
+    <target name="clean">
+        <delete dir="build"/>
+        <delete dir="docs"/>
+    </target>
+
+    <target name="compile" description="Build the code">
+        <mkdir dir="build/classes"/>
+
+        <javac srcdir="src/pgsql" destdir="build/classes" debug="on" debuglevel="lines,vars,source">
+        <compilerarg value="-Xlint"/>
+        </javac>
+
+        <javac srcdir="src" destdir="build/classes" debug="on" debuglevel="lines,vars,source">
+        <compilerarg value="-Xlint"/>
+        </javac>
+    </target>
+
+    <target name="jar" description="Create JAR files" depends="compile">
+      <mkdir dir="build/jar"/>
+      <jar basedir="build/classes" destfile="build/jar/translation.jar"
+           includes="*.class */*/*.class"
+           />
+    </target>
+
+    <target name="javadoc" description="Create Javadoc API documentation">
+        <mkdir dir="docs/api"/>
+        <javadoc destdir="docs/api" linksource="yes" private="yes">
+            <fileset dir="src">
+                <include name="*.java" />
+            </fileset>
+            <fileset dir="src">
+                <include name="*/*.java" />
+            </fileset>
+        </javadoc>
+    </target>
+</project>

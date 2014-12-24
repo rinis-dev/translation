@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Generic insert data into the translation table
+bin_dir="$(dirname "$0")"
+. ${bin_dir}/config
+
+TIMESTAMP=""
+EBMSMSGID=""
+EBMSRTMSGID=""
+EBMSCONVID=""
+WSMSGID=""
+WSRELTO=""
+
+HELPTEXT="$0 [-e][-t <timestamp>][-m <ebms_message_id> -r <ebms_ref_to_message_id> -c <ebms_conversation_id>][-i <ws_message_id> -w <ws_relates_to>]"
+
+RESULT=`$bin_dir/$database/update_translation $@`
+RC=$?
+if [ ${RC} -ne 0 ]
+then
+    echo "Call to ${bin_dir}/${database}/update_translation failed: (${RC}): $RESULT"
+    exit 1
+fi

@@ -1,0 +1,36 @@
+#!/bin/bash
+bin_dir="$(dirname "$0")"
+. ${bin_dir}/config
+RESULT=""
+
+HELPTEXT="$0 -r <ebms_ref_to_message_id> -c <ebms_conversation_id>"
+while getopts ":r:c:" options
+do
+        case $options in
+        r )     EBMSRTMSGID=${OPTARG} ;;
+        c )     EBMSCONVID=${OPTARG} ;;
+        * )     echo "Unkowm option"; echo ${HELPTEXT}; exit ;;
+        esac
+done
+
+if [ "${EBMSRTMSGID}" != "" ]
+then
+    RESULT=`$bin_dir/$database/read_translation_wsrm ws_message_id ebms_message_id $EBMSRTMSGID`
+    RC=$?
+    if [ ${RC} -ne 0 ]
+    then
+	echo "Call to ${bin_dir}/${database}/read_translation_wsrm failed: (${RC}): $RESULT"
+	exit 1
+    fi
+elif [ "${EBMSCONVID}" != "" ]
+then
+    RESULT=`$bin_dir/$database/read_translation_wsrm ws_message_id ebms_conversation_id $EBMSCONVID`
+    RC=$?
+    if [ ${RC} -ne 0 ]
+    then
+	echo "Call to ${bin_dir}/${database}/read_translation_wsrm failed: (${RC}): $RESULT"
+	exit 1
+    fi
+fi
+
+echo ws_relates_to="${RESULT};"

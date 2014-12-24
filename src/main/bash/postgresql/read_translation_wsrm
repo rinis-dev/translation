@@ -1,0 +1,5 @@
+#!/bin/bash
+bin_dir="$(dirname "$0")"
+. $bin_dir/common_psql
+
+$PSQL -c "SELECT $1 FROM translation WHERE id=(SELECT MAX(id) FROM translation WHERE $2='$3' AND ws_message_id IS NOT NULL);" -t -A

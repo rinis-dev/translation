@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# Insert data into the translation table
+
+bin_dir="$(dirname "$0")"
+. $bin_dir/common_psql
+
+ATTS=""
+VALS=""
+
+HELPTEXT="$0 [-t <timestamp>][-m <ebms_message_id> -r <ebms_ref_to_message_id> -c <ebms_conversation_id>][-i <ws_message_id> -w <ws_relates_to>]"
+while getopts ":t:m:r:c:i:w:" options
+do
+        case $options in
+        t )    TIMESTAMP=$OPTARG ;;
+	m )    EBMSMSGID=$OPTARG ;;
+	r )    EBMSRTMSGID=$OPTARG ;;
+	c )    EBMSCONVID=$OPTARG ;;
+	i )    WSMSGID=$OPTARG ;;
+	w )    WSRELTO=$OPTARG ;;
+        * )    echo "Onbekende optie";
+	       echo ${HELPTEXT};
+	       exit ;;
+        esac
+done
+
+# Build up the attribute list
+if [ "${TIMESTAMP}" == "" ]
+then
+    TIMESTAMP=`date '+%Y-%m-%d %H:%M:%S'`
+fi
+ATTS="timestamp"
+VALS="'$TIMESTAMP'"
+if [ "${EBMSMSGID}" != "" ]
+then
+    ATTS="${ATTS}, ebms_message_id"
+    VALS="${VALS}, '$EBMSMSGID'"
+fi
+if [ "${EBMSRTMSGID}" != "" ]
+then
+    ATTS="${ATTS}, ebms_ref_to_message_id"
+    VALS="${VALS}, '$EBMSRTMSGID'"
+fi
+if [ "${EBMSCONVID}" != "" ]
+then
+    ATTS="${ATTS}, ebms_conversation_id"
+    VALS="${VALS}, '$EBMSCONVID'"
+fi
+if [ "${WSMSGID}" != "" ]
+then
+    ATTS="${ATTS}, ws_message_id"
+    VALS="${VALS}, '$WSMSGID'"
+fi
+if [ "${WSRELTO}" != "" ]
+then
+    ATTS="${ATTS}, ws_relates_to"
+    VALS="${VALS}, '$WSRELTO'"
+fi
+
+$PSQL -c "INSERT INTO translation ($ATTS) VALUES ($VALS);" -t -A > /dev/null 2>&1

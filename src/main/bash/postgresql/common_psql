@@ -1,0 +1,8 @@
+#!/bin/bash
+
+HOST=localhost
+PORT=5432
+USER=translation
+DBASE=translation
+
+PSQL="/usr/bin/psql -h ${HOST} -p ${PORT} -U ${USER} -d ${DBASE}"
