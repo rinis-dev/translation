@@ -34,7 +34,6 @@
       </configuration>
     </plugin>
       
-      <!-- De java versie en compiler argumenten kunnen hieronder worden opgegeven -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
