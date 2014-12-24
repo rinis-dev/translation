@@ -59,7 +59,7 @@ This code provides support for PostgreSQL only, other database can be added.
 ## The java translation
 
 ----	 
-[shell]$ java -classpath <jar location>/translation-1.0-SNAPSHOT.jar translation
+> java -classpath <jar location>/translation-1.0-SNAPSHOT.jar translation
 No arguments found:
 
 translation [MODES:-eu|-wu|-er|-wr|-i|-h][-m <host> -p <port> -d <database> -u <user> -pw <passwd>]
@@ -86,7 +86,7 @@ Translation attributes:
 -mw  WS-RM MessageId
 -rw  WS-RM RelatesTo
 -h   this help page
-[shell]$
+>
 ----	 
 
 ## bash translation
