@@ -25,23 +25,18 @@ This code provides support for PostgreSQL only, other database can be added.
 
 3. log in as the PostgreSQL user 'postgres' created during the install
 
-4. set the password for the default user 'postgres' as a temporary environment variable
+4. cd to the PostgreSQL bin directory
 
-   `export PGPASSWORD="postgres"`
-
-5. cd to the PostgreSQL bin directory
-
-6. create a postgres user translation with default password translation
+5. create a postgres user translation with default password translation
 
 	`./createuser -s -d -P translation`
-7. create the translation database
+6. create the translation database
 
-	`./createdb -O corvus translation`
-8. Run the db create tables scripts
+	`./createdb -O translation translation`
+7. Run the db create tables scripts
 
    `psql -f translation.sql translation`
-
-9. Logout as user postgres
+8. Logout as user postgres
 
 # Running translation
 ## The java translation
