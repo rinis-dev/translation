@@ -93,3 +93,82 @@ The scripts themselves have the following commandline options:
 	./update_translation [-e][-m <ebms_message_id> -r <ebms_ref_to_message_id> -c <ebms_conversation_id>][-i <ws_message_id> -w <ws_relates_to>]
 	./ebms_wsrm_translation -r <ebms_ref_to_message_id> -c <ebms_conversation_id>
 	./wsrm_ebms_translation -r <ws_relates_to> -c <conversation_id>
+
+## example
+
+Here some examples of calls to translation through the process of translating ebMS to WS-RM and WS-RM to ebMS.
+
+### Translation ebMS to WS-RM
+
+Consider an ebMS message was received by your system, so you need to register it into the translation database. For this you need the following information from the ebMS message:
+
+	 eb:messageid
+	 eb:reftomessageid (if available)
+	 eb:conversationid
+
+To register you call translation as:
+
+	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -i -me eb:messageid [-re eb:reftomessageid] -ce eb:conversationid
+
+The next step is mapping this message to a, possible, message sent via WS-RM by searching for a wsa:messageid which has a relation with the eb:reftomessageid or the eb:conversationid.
+
+To retrieve this information you call translation as:
+
+	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -wr [-re eb:reftomessageid] -ce eb:conversationid
+
+If a related message was found translation will answer with:
+
+	 ws_relates_to=wsa:relatesto;
+
+If no related messages were found translation will answer with:
+
+	 ws_relates_to=;
+
+With this information you're environment can make the WS-RM call.
+
+After the WS-RM call was made successfuly an update with the WS-RM data is needed, the following information from WS-RM is needed:
+
+	 wsa:messageid
+	 wsa:relatesto (if available)
+
+To update you call translation as:
+
+	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -eu -me eb:messageid [-rw wsa:relatesto] -mw wsa:messageid
+
+### Translation WS-RM to ebMS
+
+Consider a WS-RM message was received by your system, so you need to register it into the translation database. For this you need the following information from the WS-RM message:
+
+	 wsa:messageid
+	 wsa:relatesto (if available)
+
+To register you call translation as:
+
+	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -i -mw wsa:messageid [-rw wsa:relatesto]
+
+The next step is mapping this message to a, possible, message sent via ebMS by searching for an eb:conversationid which has a relation with the wsa:relatesto. If there is no relation found an eb:conversationid is generated however it is also possible to provide translation with a possible conversationid in case non is found in the database.
+
+To restrieve this information you call translation as:
+
+	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -er -mw wsa:messageid [-rw wsa:relatesto] [-ce selfgeneratedconversationid]
+
+If a related conversationid was found translation will answer with:
+
+	 ebms_conversation_id=eb:conversationid;
+
+If no related conversationid was found translation will answer with:
+
+	 ebms_conversation_id=eb:[self]generatedconversationid;
+
+With this information you're environment can make the ebMS call.
+
+After the ebMS call was made successfuly an update with the ebMS data is needed, the following information from ebMS is needed:
+
+	 eb:messageid
+	 eb:reftomessageid (if available)
+	 eb:conversationid
+
+
+To update you call translation as:
+
+	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -wu -mw wsa:messageid -me eb:messageid [-re eb:reftomessageid] -re eb:conversationid
