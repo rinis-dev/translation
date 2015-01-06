@@ -1,6 +1,6 @@
 # translation
 
-Example code for the DigiKoppeling V3.0 Translatiedienst. This code performs the conversation mapping of message between ebMS and WS-RM. The specifications of the DigiKoppeling V3.0 Translatiedienst can be found under:
+Example code for the DigiKoppeling V3.0 Translatiedienst. This code performs the conversation mapping of messages between ebMS and WS-RM. The specifications of the DigiKoppeling V3.0 Translatiedienst can be found under:
 	https://www.logius.nl/fileadmin/logius/product/digikoppeling/Digikoppeling_3_0_TranslatieSpecificatie_v1_0_.pdf
 
 ## Building
