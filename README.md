@@ -44,7 +44,7 @@ This code provides support for PostgreSQL only, other database can be added.
 	> java -classpath <jar location>/translation-1.0-SNAPSHOT.jar translation
 	
 	No arguments found:
-	translation [MODES:-eu|-wu|-er|-wr|-i|-h][-m <host> -p <port> -d <database> -u <user> -pw <passwd>]
+	translation [MODES:-eu|-wu|-er|-wr|-ef|-wf|-i|-h][-m <host> -p <port> -d <database> -u <user> -pw <passwd>]
 	[-t <timestamp> -me <eb:MessageId> -re <eb:RefToMessageId> -ce <eb:ConversationId>
 	-mw <wsa:MessageId> -rw <wsa:RelatesTo>]
 	Translation modes:
@@ -52,6 +52,8 @@ This code provides support for PostgreSQL only, other database can be added.
 	-wu  update ebMS attributes for message from WS-RM
 	-er  retrieve the ebMS conversationId based of WS-RM RelatesTo
 	-wr  retrieve the WS-RM RelatesTo based of ebMS RefToMessageId or ConversationId
+	-ef  retrieve the file based on the ebMS MessageId
+	-wf  retrieve the file based on the WS-RM MessageId
 	-i   insert WS-RM or ebMS data
 	Translation attributes:
 	-m   database host
@@ -65,6 +67,8 @@ This code provides support for PostgreSQL only, other database can be added.
 	-ce  ebMS ConversationId
 	-mw  WS-RM MessageId
 	-rw  WS-RM RelatesTo
+	-fn  Filename
+	-fd  File directory
 	-h   this help page
 
 ## bash translation
@@ -100,10 +104,11 @@ Consider an ebMS message was received by your system, so you need to register it
 	 eb:messageid
 	 eb:reftomessageid (if available)
 	 eb:conversationid
+	 filename (deliverd payload)
 
 To register you call translation as:
 
-	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -i -me eb:messageid [-re eb:reftomessageid] -ce eb:conversationid
+	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -i -me eb:messageid [-re eb:reftomessageid] -ce eb:conversationid [-fn filename] 
 
 The next step is mapping this message to a, possible, message sent via WS-RM by searching for a wsa:messageid which has a relation with the eb:reftomessageid or the eb:conversationid.
 
@@ -118,6 +123,19 @@ If a related message was found translation will answer with:
 If no related messages were found translation will answer with:
 
 	 ws_relates_to=;
+
+If needed and in case the payload was stored into the database, you can retrieve it with the following parameters:
+
+   	  eb:messagid
+	  directory (directory in which want the file to be stored)
+
+You can retrieve the payload from the database with the following command:
+
+         java [-classpath translation-1.0-SNAPSHOT.jar] translation -ef -me eb:messageid -fd directory
+
+Translation will return the following information:
+
+	 file=directory/filename;
 
 With this information you're environment can make the WS-RM call.
 
@@ -136,10 +154,11 @@ Consider a WS-RM message was received by your system, so you need to register it
 
 	 wsa:messageid
 	 wsa:relatesto (if available)
+	 filename (deliverd payload)
 
 To register you call translation as:
 
-	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -i -mw wsa:messageid [-rw wsa:relatesto]
+	 java [-classpath translation-1.0-SNAPSHOT.jar] translation -i -mw wsa:messageid [-rw wsa:relatesto] [-fn filename]
 
 The next step is mapping this message to a, possible, message sent via ebMS by searching for an eb:conversationid which has a relation with the wsa:relatesto. If there is no relation found an eb:conversationid is generated however it is also possible to provide translation with a possible conversationid in case non is found in the database.
 
@@ -155,6 +174,19 @@ If no related conversationid was found translation will answer with:
 
 	 ebms_conversation_id=eb:[self]generatedconversationid;
 
+If needed and in case the payload was stored into the database, you can retrieve it with the following parameters:
+
+   	  wsa:messagid
+	  directory (directory in which want the file to be stored)
+
+You can retrieve the payload from the database with the following command:
+
+         java [-classpath translation-1.0-SNAPSHOT.jar] translation -wf -mw wsa:messageid -fd directory
+
+Translation will return the following information:
+
+	 file=directory/filename;
+
 With this information you're environment can make the ebMS call.
 
 After the ebMS call was made successfuly an update with the ebMS data is needed, the following information from ebMS is needed:
@@ -162,7 +194,6 @@ After the ebMS call was made successfuly an update with the ebMS data is needed,
 	 eb:messageid
 	 eb:reftomessageid (if available)
 	 eb:conversationid
-
 
 To update you call translation as:
 

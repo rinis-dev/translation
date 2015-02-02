@@ -5,7 +5,9 @@ CREATE TABLE translation (
     ebms_message_id text,
     ebms_ref_to_message_id text,
     ws_message_id text,
-    ws_relates_to text
+    ws_relates_to text,
+    filename text,
+    data bytea
 );
 
 CREATE SEQUENCE seq_translation

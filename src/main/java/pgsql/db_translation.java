@@ -25,6 +25,10 @@
  */
 package translation.pgsql;
 
+import java.io.*;
+import java.io.File;
+import java.io.InputStream;
+
 import java.sql.*;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -42,6 +46,7 @@ public class db_translation {
     public String ebms_ref_to_message_id;
     public String ws_message_id;
     public String ws_relates_to;
+    public String filename;
 
     /***
      * ReadTranslationEbmsConvId()
@@ -376,5 +381,158 @@ public class db_translation {
 	    }
 	}
 	return ret_val;
+    }
+
+    /***
+     * AddWsFile()
+     * method for adding a file to a WS-RM entry in the translation table
+     *
+     * @param con - connection to the Postgresql database
+     * @param WsMessageId - WsMessageId
+     * @param FileName - FileName 
+     *
+     * @return 0 if successfull 
+     */
+    public int AddWsFile( Connection con, String WsMessageId, String FileName )
+    {
+	int ret_val = 0;
+        try {
+	    File file = new File( FileName );
+	    FileInputStream fis = new FileInputStream(file);
+	    PreparedStatement ps = con.prepareStatement("UPDATE translation SET filename = ?, data = ? WHERE ws_message_id = ?;");
+	    ps.setString(1, file.getName());
+	    ps.setBinaryStream(2, fis, (int)file.length());
+	    ps.setString(3, WsMessageId); 
+	    ps.executeUpdate();
+	    ps.close();
+	    fis.close();
+	} catch (Exception se) {
+		se.printStackTrace();
+		ret_val=-1;
+	}
+	return ret_val;
+    }
+
+    /***
+     * AddEbmsFile()
+     * method for adding a file to an ebMS entry in the translation table
+     *
+     * @param con - connection to the Postgresql database
+     * @param EbmsMessageId - EbmsMessageId
+     * @param FileName - FileName 
+     *
+     * @return 0 if successfull 
+     */
+    public int AddEbmsFile( Connection con, String EbmsMessageId, String FileName )
+    {
+	int ret_val = 0;
+        try {
+	    File file = new File( FileName );
+	    FileInputStream fis = new FileInputStream(file);
+	    PreparedStatement ps = con.prepareStatement("UPDATE translation SET filename = ?, data = ? WHERE ebms_message_id = ?;");
+	    ps.setString(1, file.getName());
+	    ps.setBinaryStream(2, fis, (int)file.length());
+	    ps.setString(3, EbmsMessageId); 
+	    ps.executeUpdate();
+	    ps.close();
+	    fis.close();
+	} catch (Exception se) {
+		se.printStackTrace();
+		ret_val=-1;
+	}
+	return ret_val;
+    }
+
+    /***
+     * RetrieveWsFile()
+     * method for retrieving a file from a WS-RM entry in the translation table
+     *
+     * @param con - connection to the Postgresql database
+     * @param WsMessageId - WsMessageId
+     * @param FileDirectory - FileDirectory
+     *
+     * @return 0 if successfull 
+     */
+    public int RetrieveWsFile( Connection con, String WsMessageId, String FileDirectory )
+    {
+	int ret_val = 0;
+        try {
+	    PreparedStatement ps = con.prepareStatement("SELECT filename,data from translation WHERE ws_message_id = ?;");
+	    ps.setString(1, WsMessageId); 
+	    ResultSet rs = ps.executeQuery();
+	    if (rs != null) {
+		while (rs.next()) {                                            
+		    this.filename = rs.getString(1);
+		    InputStream data = rs.getBinaryStream(2);
+		    String fileOut = FileDirectory + "/" + this.filename;
+		    SaveOutputStream(fileOut,data);
+		    data.close();
+		}
+	    }
+	    rs.close();
+	    ps.close();
+	} catch (Exception se) {
+		se.printStackTrace();
+		ret_val=-1;
+	}
+	return ret_val;
+    }
+
+    /***
+     * RetrieveEbmsFile()
+     * method for retrieving a file from an ebMS entry in the translation table
+     *
+     * @param con - connection to the Postgresql database
+     * @param EbmsMessageId - EbmsMessageId
+     * @param FileDirectory - FileDirectory
+     *
+     * @return 0 if successfull 
+     */
+    public int RetrieveEbmsFile( Connection con, String EbmsMessageId, String FileDirectory )
+    {
+	int ret_val = 0;
+        try {
+	    PreparedStatement ps = con.prepareStatement("SELECT filename,data from translation WHERE ebms_message_id = ?;");
+	    ps.setString(1, EbmsMessageId); 
+	    ResultSet rs = ps.executeQuery();
+	    if (rs != null) {
+		while (rs.next()) {                                            
+		    this.filename = rs.getString(1);
+		    InputStream data = rs.getBinaryStream(2);
+		    String fileOut = FileDirectory + "/" + this.filename;
+		    SaveOutputStream(fileOut,data);
+		    data.close();
+		}
+	    }
+	    rs.close();
+	    ps.close();
+	} catch (Exception se) {
+		se.printStackTrace();
+		ret_val=-1;
+	}
+	return ret_val;
+    }
+
+    /***
+     * SaveOutputStream()
+     * method for saving an outputstream
+     *
+     * @param name - filename
+     * @param body - data to be stored
+     *
+     * @return 0 if successful
+     */
+    public static void SaveOutputStream(String name, InputStream body) {
+	int c;
+	try {
+	    OutputStream f = new FileOutputStream(name);
+	    while ((c=body.read())>-1) {
+		f.write(c);
+	    }
+	    f.close();
+	} catch (Exception e) {
+	    System.err.println("Exception: "+e.getMessage());
+	    e.printStackTrace();
+	}
     }
 }

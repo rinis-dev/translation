@@ -52,10 +52,14 @@ public class translation {
 	String EbmsConversationId = "";
 	String WsMessageId = "";
 	String WsRelatesTo = "";
+	String FileName = "";
+	String FileDirectory = "";
 	boolean ebmsUpdate = false;
 	boolean wsUpdate = false;
 	boolean ebmsRead = false;
 	boolean wsRead = false;
+	boolean ebmsReadFile = false;
+	boolean wsReadFile = false;
 	boolean insert = false;
 
 	// Parse all arguments and assign them to their variable
@@ -82,6 +86,10 @@ public class translation {
                     ebmsRead = true;
                 } else if (argv[index].equals("-wr")) {
                     wsRead = true;
+                } else if (argv[index].equals("-ef")) {
+                    ebmsReadFile = true;
+                } else if (argv[index].equals("-wf")) {
+                    wsReadFile = true;
                 } else if (argv[index].equals("-i")) {
                     insert = true;
                 } else if (argv[index].equals("-me")) {
@@ -94,6 +102,10 @@ public class translation {
                     WsMessageId = argv[++index];
                 } else if (argv[index].equals("-rw")) {
                     WsRelatesTo = argv[++index];
+                } else if (argv[index].equals("-fn")) {
+                    FileName = argv[++index];
+                } else if (argv[index].equals("-fd")) {
+                    FileDirectory = argv[++index];
 		} else if (argv[index].equals("-h")) {
 		    ShowHelp();
 		    System.exit(0);
@@ -107,7 +119,7 @@ public class translation {
 	}
 
 	// Check if any of the modes is selected
-	if (!ebmsUpdate && !wsUpdate && !ebmsRead && !wsRead && !insert) {
+	if (!ebmsUpdate && !wsUpdate && !ebmsRead && !wsRead && !insert && !ebmsReadFile && !wsReadFile) {
 	    System.out.println("No mode selected:\n");
 	    ShowHelp();
 	    System.exit(1);
@@ -140,10 +152,21 @@ public class translation {
 	    // Find out if this is data received via WS-RM
 	    if (WsMessageId.length() != 0) {
 		ret_val = dbtrans.InsertWsTranslation( con, timeStamp, WsMessageId, WsRelatesTo );
+		if (ret_val == 0) {
+		    if (FileName.length() != 0) {
+			ret_val = dbtrans.AddWsFile( con, WsMessageId, FileName );
+		    }
+		}
 	    // Or via ebMS
 	    } else if (EbmsMessageId.length() != 0) {
 		ret_val = dbtrans.InsertEbmsTranslation( con, timeStamp, EbmsMessageId, EbmsRefToMessageId, EbmsConversationId );
+		if (ret_val == 0) {
+		    if (FileName.length() != 0) {
+			ret_val = dbtrans.AddEbmsFile( con, EbmsMessageId, FileName );
+		    }
+		}
 	    }
+
 	    if (ret_val != 0) {
 		System.out.println("Insert entry failed.");
 	    }
@@ -174,6 +197,35 @@ public class translation {
 	    System.out.println( "ws_relates_to=" + wsRelatesTo + ";");
 	}
 
+	// Read the file related to given ebMS MessageId
+	else if (ebmsReadFile) {
+	    if (EbmsMessageId.length() != 0 && FileDirectory.length() != 0) {
+		ret_val = dbtrans.RetrieveEbmsFile( con, EbmsMessageId, FileDirectory );
+	    } else {
+		ShowHelp();
+	    }
+
+	    if (ret_val == 0) {
+		System.out.println( "file=" + FileDirectory + "/" + dbtrans.filename + ";");
+	    } else {
+		System.out.println( "Failed to retrieve file from database.");		
+	    }
+	}
+
+	// Read the file related to given WS MessageId
+	else if (wsReadFile) {
+	    if (WsMessageId.length() != 0 && FileDirectory.length() != 0) {
+		ret_val = dbtrans.RetrieveWsFile( con, WsMessageId, FileDirectory );
+	    } else {
+		ShowHelp();
+	    }
+
+	    if (ret_val == 0) {
+		System.out.println( "file=" + FileDirectory + "/" + dbtrans.filename + ";");
+	    } else {
+		System.out.println( "Failed to retrieve file from database.");		
+	    }
+	}
 	connect.CloseConnection( con );
     }
 
@@ -264,14 +316,16 @@ public class translation {
      * Shows the help page.
      */
     public static void ShowHelp() {
-	System.out.println("translation [MODES:-eu|-wu|-er|-wr|-i|-h][-m <host> -p <port> -d <database> -u <user> -pw <passwd>]");
+	System.out.println("translation [MODES:-eu|-wu|-er|-wr|-ef|-wf|-i|-h][-m <host> -p <port> -d <database> -u <user> -pw <passwd>]");
 	System.out.println("[-t <timestamp> -me <eb:MessageId> -re <eb:RefToMessageId> -ce <eb:ConversationId>");
-	System.out.println("-mw <wsa:MessageId> -rw <wsa:RelatesTo>]\n");
+	System.out.println("-mw <wsa:MessageId> -rw <wsa:RelatesTo> -fn <Filename> -fd <Directory>]\n");
 	System.out.println("Translation modes:");
 	System.out.println("-eu  update WS-RM attributes for message from ebMS");
 	System.out.println("-wu  update ebMS attributes for message from WS-RM");
 	System.out.println("-er  retrieve the ebMS conversationId based of WS-RM RelatesTo");
 	System.out.println("-wr  retrieve the WS-RM RelatesTo based of ebMS RefToMessageId or ConversationId");
+	System.out.println("-ef  retrieve the file based on the ebMS MessageId");
+	System.out.println("-wf  retrieve the file based on the WS-RM MessageId");
 	System.out.println("-i   insert WS-RM or ebMS data\n");
 	System.out.println("Translation attributes:");
 	System.out.println("-m   database host");
@@ -285,6 +339,8 @@ public class translation {
 	System.out.println("-ce  ebMS ConversationId");
 	System.out.println("-mw  WS-RM MessageId");
 	System.out.println("-rw  WS-RM RelatesTo");
+	System.out.println("-fn  Filename");
+	System.out.println("-fd  File directory");
 	System.out.println("-h   this help page");
     }
 }
