@@ -19,7 +19,7 @@ This code provides support for PostgreSQL only, other database can be added.
 
 ### PostgreSQL
 
-1. install postgresql 8.3+ - During the install, for the default user 'postgres', make the password 'postgres' (ignore quotes). For Mac OSX you should read the link - [memory configuration info for OSX](http://support.bitrock.com/article/postgresql-cannot-allocate-memory-on-mac-os-x)
+1. install postgresql 8.3+ - During the install, for the default user 'postgres', make the password 'postgres' (ignore quotes).
 
 2. copy the database creation scripts to your PostgreSQL install, copy `translation/src/main/sql/translation.sql` to the PostgreSQL bin directory
 
@@ -104,7 +104,7 @@ Consider an ebMS message was received by your system, so you need to register it
 	 eb:messageid
 	 eb:reftomessageid (if available)
 	 eb:conversationid
-	 filename (deliverd payload)
+	 filename (delivered payload)
 
 To register you call translation as:
 
