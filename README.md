@@ -154,7 +154,7 @@ Consider a WS-RM message was received by your system, so you need to register it
 
 	 wsa:messageid
 	 wsa:relatesto (if available)
-	 filename (deliverd payload)
+	 filename (delivered payload)
 
 To register you call translation as:
 
